@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Health Symptom Analyzer</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style id="app-style">
+    .tab-active {
+      border-bottom: 2px solid #60a5fa;
+      color: #60a5fa;
+      box-shadow: 0 5px 10px -5px rgba(96, 165, 250, 0.5);
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: #3B82F6;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .section-header {
+      cursor: pointer;
+    }
+    
+    .section-header:hover {
+      background-color: #F3F4F6;
+    }
+
+    .image-preview {
+      max-height: 200px;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .file-upload-container {
+      border: 2px dashed #60a5fa;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      transition: all 0.3s;
+    }
+    
+    .file-upload-container:hover {
+      border-color: #60a5fa;
+      box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+    }
+
+    body {
+      background-image: url('https://cdn.pixabay.com/photo/2016/11/29/07/23/digital-1869724_1280.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      position: relative;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 15, 30, 0.85);
+      z-index: -1;
+    }
+    
+    .container {
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      letter-spacing: 0.5px;
+    }
+    
+    main, footer {
+      background-color: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    h1, h2, h3 {
+      font-family: 'Arial', sans-serif;
+      letter-spacing: 1px;
+    }
+    
+    .neon-btn {
+      background: linear-gradient(45deg, #0b3769, #1e5fb3);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+      transition: all 0.3s ease;
+    }
+    
+    .neon-btn:hover {
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.8);
+      background: linear-gradient(45deg, #1e5fb3, #0b3769);
+    }
+    
+    .neon-purple-btn {
+      background: linear-gradient(45deg, #4c1d95, #7e22ce);
+      border: 1px solid rgba(147, 51, 234, 0.5);
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.5);
+      transition: all 0.3s ease;
+    }
+    
+    .neon-purple-btn:hover {
+      box-shadow: 0 0 25px rgba(147, 51, 234, 0.8);
+      background: linear-gradient(45deg, #7e22ce, #4c1d95);
+    }
+    
+    .frosted-panel {
+      background-color: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    
+    .recording {
+      animation: pulse 1.5s infinite;
+      background-color: rgba(239, 68, 68, 0.2);
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    
+    /* New styles for futuristic UI */
+    body {
+      background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+      font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    }
+    
+    body::before {
+      background: linear-gradient(135deg, rgba(9, 10, 30, 0.9), rgba(30, 12, 70, 0.85));
+    }
+    
+    h1, h2, h3 {
+      font-family: 'Exo 2', 'Arial', sans-serif;
+      letter-spacing: 1.2px;
+      font-weight: 600;
+    }
+    
+    .container {
+      padding: 1.5rem;
+      max-width: 1000px;
+    }
+    
+    main {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 1rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 
+                  0 0 20px rgba(114, 137, 218, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 2rem;
+      margin-top: 1rem;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(45deg, #60a5fa, #7e22ce);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(96, 165, 250, 0.3);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    
+    .tab-active {
+      border-bottom: 3px solid #6d28d9;
+      color: #6d28d9;
+      box-shadow: 0 5px 15px -8px rgba(109, 40, 217, 0.7);
+      font-weight: 600;
+    }
+    
+    #tab-text, #tab-image {
+      transition: all 0.3s ease;
+      border-radius: 4px 4px 0 0;
+      padding: 0.75rem 1.25rem;
+    }
+    
+    #tab-text:hover, #tab-image:hover {
+      background-color: rgba(237, 233, 254, 0.5);
+    }
+    
+    textarea, select, input {
+      border-radius: 0.5rem !important;
+      border: 1px solid rgba(107, 114, 128, 0.3) !important;
+      transition: all 0.3s ease !important;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    textarea:focus, select:focus {
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3) !important;
+      border-color: #6d28d9 !important;
+    }
+    
+    .neon-btn, .neon-purple-btn {
+      border-radius: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    
+    .neon-btn {
+      background: linear-gradient(45deg, #2563eb, #7c3aed);
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3), 
+                  0 0 5px rgba(124, 58, 237, 0.2);
+    }
+    
+    .neon-purple-btn {
+      background: linear-gradient(45deg, #7c3aed, #db2777);
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3),
+                  0 0 5px rgba(219, 39, 119, 0.2);
+    }
+    
+    #results-container {
+      animation: fadeInUp 0.7s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .section-header {
+      background: linear-gradient(to right, rgba(249, 250, 251, 0.8), rgba(243, 244, 246, 0.6)) !important;
+      transition: all 0.3s ease;
+      border-radius: 6px 6px 0 0;
+    }
+    
+    .section-header:hover {
+      background: linear-gradient(to right, rgba(237, 233, 254, 0.5), rgba(243, 244, 246, 0.6)) !important;
+    }
+    
+    .section-header h3 {
+      font-weight: 600;
+    }
+    
+    .section-header i.fas {
+      text-shadow: 0 0 10px rgba(124, 58, 237, 0.4);
+    }
+    
+    .loading-spinner {
+      border-width: 3px;
+      border-left-color: #7c3aed;
+      box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+    }
+    
+    footer {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(10px);
+      color: rgba(255, 255, 255, 0.7);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 2rem;
+      font-size: 0.85rem;
+    }
+    
+    .file-upload-container {
+      border: 2px dashed #6d28d9;
+      background: rgba(237, 233, 254, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .file-upload-container:hover {
+      border-color: #7c3aed;
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    #take-photo-btn {
+      background: rgba(124, 58, 237, 0.1);
+      color: #6d28d9;
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    #take-photo-btn:hover {
+      background: rgba(124, 58, 237, 0.2);
+      box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+    }
+    
+    #voice-input-btn {
+      background: rgba(37, 99, 235, 0.1);
+      color: #2563eb;
+      border: 1px solid rgba(37, 99, 235, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    #voice-input-btn:hover:not(.recording) {
+      background: rgba(37, 99, 235, 0.2);
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
+    }
+    
+    .recording {
+      background: rgba(239, 68, 68, 0.1) !important;
+      color: #ef4444 !important;
+      border: 1px solid rgba(239, 68, 68, 0.3) !important;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3) !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-3xl">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-white text-center mb-2">Health Symptom Analyzer</h1>
+      <p class="text-gray-300 text-center">Get quick analysis of your symptoms</p>
+    </header>
+
+    <main class="rounded-lg shadow-md p-6 frosted-panel">
+      <!-- Chat Interface -->
+      <div id="input-container">
+        <!-- Chat Messages Area -->
+        <div id="chat-container" class="flex flex-col h-[500px] border rounded-lg overflow-hidden">
+          <!-- Chat Messages Area -->
+          <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Welcome Message from AI Doctor -->
+            <div class="flex items-start mb-4">
+              <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white mr-3">
+                <i class="fas fa-user-md"></i>
+              </div>
+              <div class="max-w-[80%] bg-gray-100 rounded-lg p-3 shadow-sm">
+                <p class="text-gray-800">Hello! I'm your AI Health Assistant. How can I help you today? You can describe your symptoms or upload an image of the affected area.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Chat Input Area -->
+          <div class="border-t p-3 bg-white">
+            <div class="flex items-center">
+              <button id="voice-input-btn" class="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition duration-300 mr-2">
+                <i class="fas fa-microphone"></i>
+              </button>
+              <select id="language-selector" class="mr-2 p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="en-US">English</option>
+                <option value="te-IN">Telugu</option>
+                <option value="hi-IN">Hindi</option>
+              </select>
+              <button id="upload-image-btn" class="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200 transition duration-300 mr-2">
+                <i class="fas fa-image"></i>
+              </button>
+              <input type="file" id="image-upload" accept="image/*" class="hidden">
+              <textarea id="symptoms-text" class="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" 
+                rows="1" placeholder="Type your symptoms or question here..."></textarea>
+              <button id="send-message-btn" class="ml-2 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-300">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+            <div id="image-preview-container" class="mt-2 hidden">
+              <div class="relative inline-block">
+                <img id="image-preview" class="h-20 rounded-md" src="" alt="Preview of uploaded image">
+                <button id="remove-image-btn" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center -mt-2 -mr-2">
+                  <i class="fas fa-times text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loading-container" class="py-12 hidden flex flex-col items-center justify-center">
+        <div class="loading-spinner mb-4"></div>
+        <p class="text-gray-600">Analyzing your information...</p>
+      </div>
+
+      <!-- Results Panel -->
+      <div id="results-container" class="hidden fade-in">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Analysis Results</h2>
+        
+        <!-- Findings Section -->
+        <div class="mb-4 border rounded-md overflow-hidden">
+          <div class="section-header flex justify-between items-center p-3 bg-gray-50" data-target="findings-content">
+            <h3 class="font-medium text-gray-800">
+              <i class="fas fa-clipboard-list text-blue-500 mr-2"></i>Findings
+            </h3>
+            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300"></i>
+          </div>
+          <div id="findings-content" class="p-4 border-t">
+            <p id="findings-text" class="text-gray-700">
+              This is a prototype. In the complete application, this section would display the findings based on your symptoms or uploaded image.
+            </p>
+          </div>
+        </div>
+        
+        <!-- What to Do Next Section -->
+        <div class="mb-4 border rounded-md overflow-hidden">
+          <div class="section-header flex justify-between items-center p-3 bg-gray-50" data-target="action-content">
+            <h3 class="font-medium text-gray-800">
+              <i class="fas fa-list-check text-green-500 mr-2"></i>What to Do Next
+            </h3>
+            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300"></i>
+          </div>
+          <div id="action-content" class="p-4 border-t">
+            <p id="action-text" class="text-gray-700">
+              This is a prototype. In the complete application, this section would provide recommended actions based on the analysis.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Suggested Medicines Section -->
+        <div class="mb-4 border rounded-md overflow-hidden">
+          <div class="section-header flex justify-between items-center p-3 bg-gray-50" data-target="medicines-content">
+            <h3 class="font-medium text-gray-800">
+              <i class="fas fa-pills text-purple-500 mr-2"></i>Suggested Medicines
+            </h3>
+            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300"></i>
+          </div>
+          <div id="medicines-content" class="p-4 border-t">
+            <p id="medicines-text" class="text-gray-700">
+              This is a prototype. In the complete application, this section would suggest appropriate over-the-counter medicines or treatments.
+            </p>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <button 
+            id="start-over-btn" 
+            class="w-full neon-purple-btn text-white font-medium py-3 px-4 rounded-md transition duration-300"
+            aria-label="Start over">
+            <i class="fas fa-arrow-rotate-left mr-2"></i>Start Over
+          </button>
+        </div>
+      </div>
+
+    </main>
+    
+    <footer class="mt-8 text-center text-gray-300 text-sm p-4 rounded-lg frosted-panel">
+      <p>© 2025 Health Symptom Analyzer. This is not a substitute for professional medical advice.</p>
+    </footer>
+  </div>
+
+  <script id="app-script">
+    // DOM elements
+    const chatMessages = document.getElementById('chat-messages');
+    const inputContainer = document.getElementById('input-container');
+    const loadingContainer = document.getElementById('loading-container');
+    const resultsContainer = document.getElementById('results-container');
+    const sendMessageBtn = document.getElementById('send-message-btn');
+    const symptomsText = document.getElementById('symptoms-text');
+    const imageUpload = document.getElementById('image-upload');
+    const uploadImageBtn = document.getElementById('upload-image-btn');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    const removeImageBtn = document.getElementById('remove-image-btn');
+    const voiceInputBtn = document.getElementById('voice-input-btn');
+    const languageSelector = document.getElementById('language-selector');
+
+    // Helper to upload a single file
+    async function uploadFile(file, loopId) {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`https://magicloops.dev/api/loop/${loopId}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      return await res.json(); // { url: "...", fileName: "...", type: "..." }
+    }
+
+    // Language detection helper function
+    function detectLanguage(text) {
+      // Simple heuristic language detection
+      const hindiPattern = /[\u0900-\u097F]/;
+      const teluguPattern = /[\u0C00-\u0C7F]/;
+      
+      if (hindiPattern.test(text)) return 'hi-IN';
+      if (teluguPattern.test(text)) return 'te-IN';
+      return 'en-US'; // Default to English
+    }
+
+    // Add user message to chat
+    function addUserMessage(text, imageUrl = null) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'flex items-start justify-end mb-4';
+      
+      let content = '';
+      if (imageUrl) {
+        content += `<img src="${imageUrl}" alt="Uploaded image" class="max-w-[200px] max-h-[200px] rounded-lg mb-2"><br>`;
+      }
+      if (text) {
+        content += text;
+      }
+
+      msgDiv.innerHTML = `
+        <div class="max-w-[80%] bg-blue-100 rounded-lg p-3 shadow-sm">
+          <p class="text-gray-800">${content}</p>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white ml-3">
+          <i class="fas fa-user"></i>
+        </div>
+      `;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Add AI response to chat
+    function addAIResponse(data) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'flex items-start mb-4';
+      
+      msgDiv.innerHTML = `
+        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white mr-3">
+          <i class="fas fa-user-md"></i>
+        </div>
+        <div class="max-w-[80%] bg-gray-100 rounded-lg p-3 shadow-sm">
+          <div class="mb-3">
+            <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-clipboard-list text-blue-500 mr-2"></i>Findings</h4>
+            <p class="text-gray-700">${data.findings}</p>
+          </div>
+          <div class="mb-3">
+            <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-list-check text-green-500 mr-2"></i>What to Do Next</h4>
+            <p class="text-gray-700">${data.actionPlan}</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-pills text-purple-500 mr-2"></i>Suggested Medicines</h4>
+            <div class="text-gray-700">
+              ${data.suggestedMedicines.map(m => `<p>• ${m.name}: ${m.dosage}</p>`).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Add loading indicator to chat
+    function addLoadingIndicator() {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.id = 'chat-loading';
+      loadingDiv.className = 'flex items-start mb-4';
+      
+      loadingDiv.innerHTML = `
+        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white mr-3">
+          <i class="fas fa-user-md"></i>
+        </div>
+        <div class="bg-gray-100 rounded-lg p-3 shadow-sm flex items-center">
+          <div class="loading-spinner mr-2" style="width: 20px; height: 20px;"></div>
+          <p class="text-gray-600">Analyzing...</p>
+        </div>
+      `;
+      chatMessages.appendChild(loadingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Remove loading indicator
+    function removeLoadingIndicator() {
+      const loadingDiv = document.getElementById('chat-loading');
+      if (loadingDiv) {
+        loadingDiv.remove();
+      }
+    }
+
+    // Process text message
+    async function processTextMessage(text) {
+      addUserMessage(text);
+      addLoadingIndicator();
+      
+      try {
+        // Detect language from input text
+        const detectedLanguage = detectLanguage(text);
+        console.log(`Detected language: ${detectedLanguage}`);
+        
+        const resp = await fetch(
+          'https://magicloops.dev/api/loop/b88aeb62-8d1d-439e-83d8-6bca692dc0cb/run',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              symptomText: text,
+              language: detectedLanguage
+            })
+          }
+        );
+        const data = await resp.json();
+        removeLoadingIndicator();
+        addAIResponse(data);
+      } catch (err) {
+        console.error(err);
+        removeLoadingIndicator();
+        addAIResponse({
+          findings: "Sorry, I couldn't process your request.",
+          actionPlan: "Please try again or rephrase your message.",
+          suggestedMedicines: []
+        });
+      }
+    }
+
+    // Process image message
+    async function processImageMessage(file, text = '') {
+      const imageUrl = URL.createObjectURL(file);
+      addUserMessage(text, imageUrl);
+      addLoadingIndicator();
+      
+      try {
+        // Upload image
+        const uploadMeta = await uploadFile(
+          file,
+          '7481a9d9-1917-4f48-9914-6f352cda35bb'
+        );
+        
+        // Use the UI selected language for image analysis
+        const selectedLanguage = languageSelector.value;
+        
+        const resp = await fetch(
+          'https://magicloops.dev/api/loop/7481a9d9-1917-4f48-9914-6f352cda35bb/run',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              imageUrl: uploadMeta.url,
+              language: selectedLanguage
+            })
+          }
+        );
+        const data = await resp.json();
+        removeLoadingIndicator();
+        addAIResponse(data);
+      } catch (err) {
+        console.error(err);
+        removeLoadingIndicator();
+        addAIResponse({
+          findings: "Sorry, I couldn't process your image.",
+          actionPlan: "Please try uploading a different image or describe your symptoms in text.",
+          suggestedMedicines: []
+        });
+      }
+    }
+
+    // Send message handler
+    sendMessageBtn.addEventListener('click', () => {
+      const text = symptomsText.value.trim();
+      const hasImage = imageUpload.files && imageUpload.files[0];
+      
+      if (!text && !hasImage) {
+        return;
+      }
+      
+      if (hasImage) {
+        processImageMessage(imageUpload.files[0], text);
+      } else {
+        processTextMessage(text);
+      }
+      
+      // Clear input
+      symptomsText.value = '';
+      imageUpload.value = '';
+      imagePreviewContainer.classList.add('hidden');
+    });
+
+    // Enter key to send message
+    symptomsText.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessageBtn.click();
+      }
+    });
+
+    // Upload image button
+    uploadImageBtn.addEventListener('click', () => {
+      imageUpload.click();
+    });
+
+    // Image upload preview
+    imageUpload.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          imagePreview.src = e.target.result;
+          imagePreviewContainer.classList.remove('hidden');
+        }
+        
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    // Remove image
+    removeImageBtn.addEventListener('click', () => {
+      imageUpload.value = '';
+      imagePreviewContainer.classList.add('hidden');
+    });
+
+    // Voice input functionality
+    let recognition = null;
+    let isRecording = false;
+    
+    // Initialize speech recognition
+    function setupSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        voiceInputBtn.disabled = true;
+        voiceInputBtn.title = "Speech recognition not supported in this browser";
+        return false;
+      }
+      
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      
+      recognition.onstart = function() {
+        isRecording = true;
+        voiceInputBtn.classList.add('recording');
+        voiceInputBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
+      };
+      
+      recognition.onend = function() {
+        isRecording = false;
+        voiceInputBtn.classList.remove('recording');
+        voiceInputBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        
+        if (symptomsText.value.trim()) {
+          console.log(`Voice input completed in ${languageSelector.value}`);
+        }
+      };
+      
+      recognition.onresult = function(event) {
+        let interimTranscript = '';
+        let finalTranscript = symptomsText.value;
+        
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + ' ';
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        symptomsText.value = finalTranscript + interimTranscript;
+      };
+      
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        isRecording = false;
+        voiceInputBtn.classList.remove('recording');
+        voiceInputBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        alert('Speech recognition error: ' + event.error);
+      };
+      
+      return true;
+    }
+    
+    // Toggle voice recording
+    voiceInputBtn.addEventListener('click', () => {
+      if (!recognition && !setupSpeechRecognition()) {
+        return;
+      }
+      
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        symptomsText.focus();
+        recognition.lang = languageSelector.value;
+        recognition.start();
+      }
+    });
+    
+    // Update recognition language when selector changes
+    languageSelector.addEventListener('change', () => {
+      if (recognition) {
+        if (isRecording) {
+          recognition.stop();
+          recognition.lang = languageSelector.value;
+          recognition.start();
+        } else {
+          recognition.lang = languageSelector.value;
+        }
+      }
+    });
+    
+    // Initialize speech recognition on page load
+    document.addEventListener('DOMContentLoaded', setupSpeechRecognition);
+  </script>
+</body>
+</html>
